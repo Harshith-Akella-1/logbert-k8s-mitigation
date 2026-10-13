@@ -1,0 +1,8 @@
+torch
+numpy
+pandas
+scikit-learn
+drain3
+kubernetes>=33
+matplotlib
+reportlab

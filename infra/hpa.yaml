@@ -1,0 +1,33 @@
+# Reactive baseline: HPA at 70% CPU on the services the faults target. Apply only for the reactive run.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: frontend}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: frontend}
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 70}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: productcatalogservice}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: productcatalogservice}
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 70}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: currencyservice}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: currencyservice}
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 70}}

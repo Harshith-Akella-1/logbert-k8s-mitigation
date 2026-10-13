@@ -1,0 +1,32 @@
+# Stands in for a user: requests three frontend pages in a loop and prints one line per request.
+# The collector picks these lines up; metrics.py turns them into availability and MTTR.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prober
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prober
+  template:
+    metadata:
+      labels:
+        app: prober
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+        - name: prober
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                for p in / /product/OLJCESPC7Z /cart; do
+                  curl -s -o /dev/null -m 3 -w "PROBE $p %{http_code} %{time_total}\n" "http://frontend:80$p"
+                done
+                sleep 0.5
+              done
+          resources:
+            requests: {cpu: 20m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 64Mi}

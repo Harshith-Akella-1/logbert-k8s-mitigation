@@ -1,0 +1,70 @@
+{
+ "collected_on": "2026-10-13",
+ "hardware": {
+  "machine": "Dell G15 5530 laptop",
+  "cpu": "13th Gen Intel Core i5-13450HX, 10 cores / 16 threads",
+  "ram_gb": 15.7,
+  "gpu": "NVIDIA GeForce RTX 3050 6GB Laptop GPU (6144 MiB), driver 596.08",
+  "os": "Windows 11 Home Single Language, build 10.0.26200"
+ },
+ "cluster": {
+  "nodes": 1,
+  "node_vcpu": 4,
+  "node_memory_mb": 6144,
+  "driver": "docker",
+  "container_runtime": "containerd 2.3.4",
+  "kic_base_image": "gcr.io/k8s-minikube/kicbase:v0.0.51",
+  "addons": ["storage-provisioner", "default-storageclass", "metrics-server v0.9.0"],
+  "docker_desktop_vm_memory_gb": 7.6,
+  "namespace": "default"
+ },
+ "versions": {
+  "minikube": "v1.39.0",
+  "kubernetes_server": "v1.37.0",
+  "kubectl_client": "v1.37.1",
+  "docker_desktop": "4.94.0 (241994)",
+  "docker_engine": "29.8.2",
+  "wsl": "3.0.1.0 during the normal run; 3.0.3.0 during both fault runs (auto-updated by Windows Update on 2026-10-13 at 10:35)",
+  "python": "3.13.7",
+  "pytorch": "2.10.0+cu126 (training, evaluation); the CPU build 2.10.0+cpu was installed until 2026-10-13 and trained nothing that is reported",
+  "cuda": "12.6",
+  "cudnn": "9.10.2 (91002)",
+  "drain3": "0.9.11",
+  "kubernetes_python_client": "37.0.1",
+  "scikit_learn": "1.8.0",
+  "numpy": "1.26.4",
+  "pandas": "2.3.1"
+ },
+ "online_boutique": {
+  "release": "v0.10.3",
+  "commit": "cd1cb59f6fce3e2ccf08be7cea743e3784932d73",
+  "manifest": "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.10.3/release/kubernetes-manifests.yaml",
+  "images": "us-central1-docker.pkg.dev/google-samples/microservices-demo/<service>:v0.10.3, plus redis:alpine",
+  "deployments": ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend",
+                  "loadgenerator", "paymentservice", "productcatalogservice", "recommendationservice",
+                  "redis-cart", "shippingservice"],
+  "replicas_per_deployment": 1,
+  "modifications": "none; the release manifest is applied unchanged"
+ },
+ "load_generator": {
+  "tool": "Locust 2.33.2 (bundled loadgenerator image)",
+  "users": 10,
+  "spawn_rate_per_s": 1,
+  "pattern": "constant: 10 users for the whole run, no ramp after start-up and no diurnal variation",
+  "wait_between_tasks_s": "uniform 1 to 10",
+  "task_weights": {"index": 1, "setCurrency": 2, "browseProduct": 10, "addToCart": 2, "viewCart": 3, "checkout": 1},
+  "note": "settings are the release defaults (USERS=10, RATE=1)"
+ },
+ "prober": {
+  "image": "curlimages/curl:8.10.1",
+  "requests": ["GET /", "GET /product/OLJCESPC7Z", "GET /cart"],
+  "loop": "the three requests in sequence, then sleep 0.5 s",
+  "timeout_s": 3,
+  "success": "HTTP status 2xx or 3xx",
+  "manifest": "infra/prober.yaml"
+ },
+ "log_collection": {
+  "method": "poll read_namespaced_pod_log for every container every 2 s (logmit/collect.py)",
+  "excluded_from_detection": ["loadgenerator", "prober"]
+ }
+}
