@@ -54,7 +54,8 @@ def main(run):
     t, ok = probes(run)
     episodes = read_jsonl(run_dir(run) / "faults.jsonl")
     verdicts = read_jsonl(run_dir(run) / "verdicts.jsonl")
-    acted = [v for v in verdicts if not v["action"].startswith(("skip", "alert"))]
+    # a dry-run loop logs what it would have done; those are verdicts, not actions
+    acted = [v for v in verdicts if not v.get("dry_run") and not v["action"].startswith(("skip", "alert"))]
     rows = []
     for e in episodes:
         m = (t >= e["start"]) & (t <= e["end"] + SETTLE)

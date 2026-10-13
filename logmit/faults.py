@@ -10,7 +10,7 @@ import time
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-from .config import NAMESPACE, affected, append_jsonl, run_dir
+from .config import NAMESPACE, SERVICES, affected, append_jsonl, run_dir
 
 # fault -> services it is injected into
 TARGETS = {
@@ -90,7 +90,17 @@ def main(a):
         finally:
             append_jsonl(log, {"fault": fault, "target": target, "affected": affected(target),
                                "start": start, "end": time.time()})
-        time.sleep(a.gap)
+        if a.reset_replicas:
+            # closed-loop runs: undo any scale-ups once the settling period is over,
+            # so every episode starts from one replica per service
+            settle = min(60.0, a.gap)
+            time.sleep(settle)
+            for d in apps.list_namespaced_deployment(NAMESPACE).items:
+                if d.metadata.name in SERVICES and d.spec.replicas != 1:
+                    apps.patch_namespaced_deployment_scale(d.metadata.name, NAMESPACE, {"spec": {"replicas": 1}})
+            time.sleep(a.gap - settle)
+        else:
+            time.sleep(a.gap)
 
 
 if __name__ == "__main__":
@@ -101,4 +111,5 @@ if __name__ == "__main__":
     ap.add_argument("--duration", type=float, default=120, help="seconds per fault")
     ap.add_argument("--gap", type=float, default=180, help="normal seconds between faults")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--reset-replicas", action="store_true", help="return every Deployment to 1 replica after each episode")
     main(ap.parse_args())

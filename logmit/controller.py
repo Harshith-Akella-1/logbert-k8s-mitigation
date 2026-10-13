@@ -1,4 +1,5 @@
 """Stage 5: mitigation controller. Table I policy with a per-service cooldown and an action budget."""
+import json
 import re
 import time
 from collections import defaultdict, deque
@@ -14,15 +15,34 @@ CRITICAL_STREAK = 3      # anomalous windows in a row, after acting, before givi
 
 DEPENDENCY = re.compile(r"timeout|timed out|deadline|unavailable|refused|rpc error|failed to|could not", re.I)
 CRASH = re.compile(r"panic|exception|fatal|traceback|segfault|out of memory|oom", re.I)
+# how each service shows up in its callers' error messages
+MENTIONS = {
+    "adservice": r"\bads?\b|adservice", "cartservice": r"\bcart\b|cartservice", "checkoutservice": r"checkout|\border\b",
+    "currencyservice": r"currenc", "emailservice": r"email", "paymentservice": r"payment|charge",
+    "productcatalogservice": r"product", "recommendationservice": r"recommendation",
+    "redis-cart": r"redis|cart storage", "shippingservice": r"shipping",
+}
+
+
+def message(line):
+    """The human-readable part of a log line: the message and error fields of a JSON line, else the line."""
+    if line.lstrip().startswith("{"):
+        try:
+            obj = json.loads(line)
+            return f"{obj.get('message', '')} {obj.get('error', '')}"
+        except ValueError:
+            pass
+    return line
 
 
 def classify(svc, lines):
     """Suspected fault class from the raw lines of the anomalous window, plus any dependency named in them.
     Keyword rules stand in for the paper's classifier head."""
-    text = "\n".join(lines)
-    deps = [s for s in SERVICES if s != svc
-            and re.search(rf"\b{re.escape(s.replace('service', ''))}(s|service)?\b", text, re.I)]
-    if DEPENDENCY.search(text):
+    text = "\n".join(message(line) for line in lines)
+    # name dependencies from the error messages only: request paths and normal lines mention "cart" all the time
+    errors = "\n".join(m for m in map(message, lines) if DEPENDENCY.search(m))
+    deps = [s for s in SERVICES if s != svc and re.search(MENTIONS[s], errors, re.I)]
+    if errors:
         return "dependency", deps
     if CRASH.search(text):
         return "crash", []
@@ -82,5 +102,6 @@ class Controller:
             self.last_action[svc] = now
             self.recent.append(now)
         append_jsonl(self.log_path, {"ts": now, "log_ts": log_ts, "svc": svc, "fault_class": fault,
-                                     "streak": streak, "score": score, "action": action})
+                                     "streak": streak, "score": score, "action": action,
+                                     "dry_run": self.dry_run})
         return action
