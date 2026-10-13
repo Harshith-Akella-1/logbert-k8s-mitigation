@@ -18,7 +18,7 @@ CRASH = re.compile(r"panic|exception|fatal|traceback|segfault|out of memory|oom"
 # how each service shows up in its callers' error messages
 MENTIONS = {
     "adservice": r"\bads?\b|adservice", "cartservice": r"\bcart\b|cartservice", "checkoutservice": r"checkout|\border\b",
-    "currencyservice": r"currenc", "emailservice": r"email", "paymentservice": r"payment|charge",
+    "currencyservice": r"currenc", "emailservice": r"email", "frontend": r"frontend", "paymentservice": r"payment|charge",
     "productcatalogservice": r"product", "recommendationservice": r"recommendation",
     "redis-cart": r"redis|cart storage", "shippingservice": r"shipping",
 }
