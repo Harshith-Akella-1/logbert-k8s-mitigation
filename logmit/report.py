@@ -110,6 +110,8 @@ def main(a):
 
     pred = score["test"] > tau
     verdict = persist(pred, wt["svc"])  # second of two consecutive anomalous windows of one service
+    rule_pred = wt["err"] > det["methods"]["Error-rate rule"]["tau"]
+    rule_verdict = persist(rule_pred, wt["svc"])
     pt, pok = probes(a.test)
     rows = []
     for i, e in enumerate(read_jsonl(run_dir(a.test) / "faults.jsonl")):
@@ -121,6 +123,8 @@ def main(a):
 
         t_any, s_any = first(inside & pred)
         t_ver, s_ver = first(inside & verdict)
+        r_any, _ = first(inside & rule_pred)
+        r_ver, _ = first(inside & rule_verdict)
         fails = pt[(~pok) & (pt >= e["start"]) & (pt <= e["end"] + SETTLE)]
         m = (pt >= e["start"]) & (pt <= e["end"])
         first_fail = float(fails[0]) if len(fails) else None
@@ -131,6 +135,8 @@ def main(a):
             "first_window_service": s_any,
             "detected_verdict": t_ver is not None, "verdict_lag_s": None if t_ver is None else round(t_ver - e["start"], 2),
             "verdict_service": s_ver,
+            "rule_first_window_lag_s": None if r_any is None else round(r_any - e["start"], 2),
+            "rule_verdict_lag_s": None if r_ver is None else round(r_ver - e["start"], 2),
             "first_failed_probe_lag_s": None if first_fail is None else round(first_fail - e["start"], 2),
             "failed_probe_pct_during_fault": round(100 * float((~pok[m]).mean()), 2) if m.any() else None,
             "verdict_lead_over_first_failed_probe_s": None if (t_ver is None or first_fail is None) else round(first_fail - t_ver, 2),
@@ -157,6 +163,7 @@ def main(a):
     print(json.dumps({k: v for k, v in summary.items() if k not in ("per_episode", "definitions")}, indent=1))
     for r in rows:
         print(f"{r['n']:>2} {r['fault']:<12} {r['target']:<22} verdict {str(r['verdict_lag_s']):>7}s ({r['verdict_service']})  "
+              f"rule {str(r['rule_verdict_lag_s']):>7}s  "
               f"first failed probe {str(r['first_failed_probe_lag_s']):>7}s  failed {r['failed_probe_pct_during_fault']}%")
     print("\nvalidation sweep:", [(round(s["tau"], 3), round(s["precision"], 3), round(s["recall"], 3), round(s["f1"], 3)) for s in sweep[:8]])
     print(f"wrote {OUT}")

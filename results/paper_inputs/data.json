@@ -1,0 +1,609 @@
+{
+ "normal": {
+  "run": "normal1",
+  "start": "2026-10-13T00:45:33",
+  "end": "2026-10-13T01:30:10",
+  "duration_min": 44.62,
+  "lines_all_pods": 232457,
+  "lines_monitored_services": 196999,
+  "lines_per_service": {
+   "currencyservice": 74729,
+   "frontend": 66021,
+   "cartservice": 18764,
+   "recommendationservice": 12639,
+   "adservice": 11676,
+   "shippingservice": 11596,
+   "checkoutservice": 757,
+   "paymentservice": 517,
+   "emailservice": 252,
+   "redis-cart": 48
+  },
+  "unknown_key_lines": 0,
+  "windows": {
+   "total": 24590,
+   "normal": 24590,
+   "anomalous": 0,
+   "excluded_settling": 0,
+   "anomalous_by_fault": {}
+  },
+  "episodes": [],
+  "split": {
+   "rule": "chronological: windows ending before the 80th percentile of window start times train the models; windows starting at or after it are the held-out normal set; windows straddling the cut are dropped",
+   "train": {
+    "from": "2026-10-13T00:45:33",
+    "to": "2026-10-13T01:17:40",
+    "windows": 19635
+   },
+   "held_out": {
+    "from": "2026-10-13T01:17:40",
+    "to": "2026-10-13T01:30:10",
+    "windows": 4918
+   },
+   "cut": "2026-10-13T01:17:40",
+   "dropped_straddling": 37
+  }
+ },
+ "validation": {
+  "run": "fault_val",
+  "start": "2026-10-13T13:12:20",
+  "end": "2026-10-13T14:19:52",
+  "duration_min": 67.54,
+  "lines_all_pods": 317673,
+  "lines_monitored_services": 264933,
+  "lines_per_service": {
+   "frontend": 97113,
+   "currencyservice": 87848,
+   "recommendationservice": 27943,
+   "cartservice": 24074,
+   "adservice": 13535,
+   "shippingservice": 12522,
+   "checkoutservice": 841,
+   "paymentservice": 548,
+   "emailservice": 261,
+   "redis-cart": 198,
+   "productcatalogservice": 50
+  },
+  "unknown_key_lines": 17945,
+  "windows": {
+   "total": 33076,
+   "normal": 21557,
+   "anomalous": 6640,
+   "excluded_settling": 4879,
+   "anomalous_by_fault": {
+    "cpu_throttle": 1095,
+    "outage": 1678,
+    "pod_kill": 3867
+   }
+  },
+  "episodes": [
+   {
+    "n": 1,
+    "fault": "pod_kill",
+    "target": "cartservice",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T13:14:21",
+    "end": "2026-10-13T13:16:01",
+    "duration_s": 100.1
+   },
+   {
+    "n": 2,
+    "fault": "pod_kill",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T13:18:01",
+    "end": "2026-10-13T13:19:41",
+    "duration_s": 100.2
+   },
+   {
+    "n": 3,
+    "fault": "pod_kill",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T13:21:41",
+    "end": "2026-10-13T13:23:21",
+    "duration_s": 100.2
+   },
+   {
+    "n": 4,
+    "fault": "cpu_throttle",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T13:25:21",
+    "end": "2026-10-13T13:26:52",
+    "duration_s": 90.1
+   },
+   {
+    "n": 5,
+    "fault": "pod_kill",
+    "target": "cartservice",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T13:28:52",
+    "end": "2026-10-13T13:30:32",
+    "duration_s": 100.2
+   },
+   {
+    "n": 6,
+    "fault": "cpu_throttle",
+    "target": "frontend",
+    "affected": [
+     "frontend"
+    ],
+    "start": "2026-10-13T13:32:32",
+    "end": "2026-10-13T13:34:02",
+    "duration_s": 90.1
+   },
+   {
+    "n": 7,
+    "fault": "pod_kill",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T13:36:02",
+    "end": "2026-10-13T13:37:42",
+    "duration_s": 100.2
+   },
+   {
+    "n": 8,
+    "fault": "outage",
+    "target": "redis-cart",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend",
+     "redis-cart"
+    ],
+    "start": "2026-10-13T13:39:42",
+    "end": "2026-10-13T13:41:12",
+    "duration_s": 90.1
+   },
+   {
+    "n": 9,
+    "fault": "outage",
+    "target": "shippingservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "shippingservice"
+    ],
+    "start": "2026-10-13T13:43:12",
+    "end": "2026-10-13T13:44:42",
+    "duration_s": 90.1
+   },
+   {
+    "n": 10,
+    "fault": "cpu_throttle",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T13:46:42",
+    "end": "2026-10-13T13:48:12",
+    "duration_s": 90.1
+   },
+   {
+    "n": 11,
+    "fault": "outage",
+    "target": "shippingservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "shippingservice"
+    ],
+    "start": "2026-10-13T13:50:12",
+    "end": "2026-10-13T13:51:42",
+    "duration_s": 90.1
+   },
+   {
+    "n": 12,
+    "fault": "cpu_throttle",
+    "target": "frontend",
+    "affected": [
+     "frontend"
+    ],
+    "start": "2026-10-13T13:53:42",
+    "end": "2026-10-13T13:55:12",
+    "duration_s": 90.1
+   },
+   {
+    "n": 13,
+    "fault": "cpu_throttle",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T13:57:12",
+    "end": "2026-10-13T13:58:42",
+    "duration_s": 90.1
+   },
+   {
+    "n": 14,
+    "fault": "cpu_throttle",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T14:00:42",
+    "end": "2026-10-13T14:02:13",
+    "duration_s": 90.1
+   },
+   {
+    "n": 15,
+    "fault": "outage",
+    "target": "recommendationservice",
+    "affected": [
+     "frontend",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T14:04:13",
+    "end": "2026-10-13T14:05:43",
+    "duration_s": 90.0
+   },
+   {
+    "n": 16,
+    "fault": "pod_kill",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T14:07:43",
+    "end": "2026-10-13T14:09:23",
+    "duration_s": 100.2
+   },
+   {
+    "n": 17,
+    "fault": "outage",
+    "target": "recommendationservice",
+    "affected": [
+     "frontend",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T14:11:23",
+    "end": "2026-10-13T14:12:53",
+    "duration_s": 90.1
+   },
+   {
+    "n": 18,
+    "fault": "outage",
+    "target": "redis-cart",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend",
+     "redis-cart"
+    ],
+    "start": "2026-10-13T14:14:53",
+    "end": "2026-10-13T14:16:23",
+    "duration_s": 90.0
+   }
+  ]
+ },
+ "test": {
+  "run": "fault_test",
+  "start": "2026-10-13T14:20:54",
+  "end": "2026-10-13T15:28:26",
+  "duration_min": 67.54,
+  "lines_all_pods": 318967,
+  "lines_monitored_services": 266494,
+  "lines_per_service": {
+   "frontend": 95723,
+   "currencyservice": 90343,
+   "recommendationservice": 26475,
+   "cartservice": 24801,
+   "adservice": 13916,
+   "shippingservice": 13200,
+   "checkoutservice": 916,
+   "paymentservice": 586,
+   "emailservice": 280,
+   "redis-cart": 204,
+   "productcatalogservice": 50
+  },
+  "unknown_key_lines": 16383,
+  "windows": {
+   "total": 33272,
+   "normal": 21900,
+   "anomalous": 6443,
+   "excluded_settling": 4929,
+   "anomalous_by_fault": {
+    "cpu_throttle": 1017,
+    "outage": 1710,
+    "pod_kill": 3716
+   }
+  },
+  "episodes": [
+   {
+    "n": 1,
+    "fault": "pod_kill",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T14:22:55",
+    "end": "2026-10-13T14:24:35",
+    "duration_s": 100.1
+   },
+   {
+    "n": 2,
+    "fault": "outage",
+    "target": "shippingservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "shippingservice"
+    ],
+    "start": "2026-10-13T14:26:35",
+    "end": "2026-10-13T14:28:05",
+    "duration_s": 90.1
+   },
+   {
+    "n": 3,
+    "fault": "cpu_throttle",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T14:30:05",
+    "end": "2026-10-13T14:31:35",
+    "duration_s": 90.1
+   },
+   {
+    "n": 4,
+    "fault": "cpu_throttle",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T14:33:35",
+    "end": "2026-10-13T14:35:05",
+    "duration_s": 90.1
+   },
+   {
+    "n": 5,
+    "fault": "pod_kill",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T14:37:05",
+    "end": "2026-10-13T14:38:45",
+    "duration_s": 100.2
+   },
+   {
+    "n": 6,
+    "fault": "pod_kill",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T14:40:45",
+    "end": "2026-10-13T14:42:25",
+    "duration_s": 100.2
+   },
+   {
+    "n": 7,
+    "fault": "cpu_throttle",
+    "target": "frontend",
+    "affected": [
+     "frontend"
+    ],
+    "start": "2026-10-13T14:44:25",
+    "end": "2026-10-13T14:45:56",
+    "duration_s": 90.1
+   },
+   {
+    "n": 8,
+    "fault": "outage",
+    "target": "shippingservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "shippingservice"
+    ],
+    "start": "2026-10-13T14:47:56",
+    "end": "2026-10-13T14:49:26",
+    "duration_s": 90.1
+   },
+   {
+    "n": 9,
+    "fault": "outage",
+    "target": "redis-cart",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend",
+     "redis-cart"
+    ],
+    "start": "2026-10-13T14:51:26",
+    "end": "2026-10-13T14:52:56",
+    "duration_s": 90.1
+   },
+   {
+    "n": 10,
+    "fault": "cpu_throttle",
+    "target": "frontend",
+    "affected": [
+     "frontend"
+    ],
+    "start": "2026-10-13T14:54:56",
+    "end": "2026-10-13T14:56:26",
+    "duration_s": 90.0
+   },
+   {
+    "n": 11,
+    "fault": "pod_kill",
+    "target": "cartservice",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T14:58:26",
+    "end": "2026-10-13T15:00:06",
+    "duration_s": 100.2
+   },
+   {
+    "n": 12,
+    "fault": "outage",
+    "target": "recommendationservice",
+    "affected": [
+     "frontend",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T15:02:06",
+    "end": "2026-10-13T15:03:36",
+    "duration_s": 90.1
+   },
+   {
+    "n": 13,
+    "fault": "outage",
+    "target": "redis-cart",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend",
+     "redis-cart"
+    ],
+    "start": "2026-10-13T15:05:36",
+    "end": "2026-10-13T15:07:06",
+    "duration_s": 90.1
+   },
+   {
+    "n": 14,
+    "fault": "cpu_throttle",
+    "target": "productcatalogservice",
+    "affected": [
+     "checkoutservice",
+     "frontend",
+     "productcatalogservice",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T15:09:06",
+    "end": "2026-10-13T15:10:36",
+    "duration_s": 90.1
+   },
+   {
+    "n": 15,
+    "fault": "pod_kill",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T15:12:36",
+    "end": "2026-10-13T15:14:16",
+    "duration_s": 100.1
+   },
+   {
+    "n": 16,
+    "fault": "cpu_throttle",
+    "target": "currencyservice",
+    "affected": [
+     "checkoutservice",
+     "currencyservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T15:16:16",
+    "end": "2026-10-13T15:17:46",
+    "duration_s": 90.1
+   },
+   {
+    "n": 17,
+    "fault": "pod_kill",
+    "target": "cartservice",
+    "affected": [
+     "cartservice",
+     "checkoutservice",
+     "frontend"
+    ],
+    "start": "2026-10-13T15:19:46",
+    "end": "2026-10-13T15:21:27",
+    "duration_s": 100.2
+   },
+   {
+    "n": 18,
+    "fault": "outage",
+    "target": "recommendationservice",
+    "affected": [
+     "frontend",
+     "recommendationservice"
+    ],
+    "start": "2026-10-13T15:23:27",
+    "end": "2026-10-13T15:24:57",
+    "duration_s": 90.1
+   }
+  ]
+ },
+ "window": {
+  "size_keys": 32,
+  "stride_keys": 8,
+  "per": "service"
+ },
+ "monitored_services": [
+  "adservice",
+  "cartservice",
+  "checkoutservice",
+  "currencyservice",
+  "emailservice",
+  "frontend",
+  "paymentservice",
+  "recommendationservice",
+  "redis-cart",
+  "shippingservice"
+ ],
+ "templates": 48,
+ "labelling": {
+  "anomalous": "window [t0, t1] of service S is anomalous if t0 <= episode.end and t1 >= episode.start for an episode whose affected set contains S",
+  "affected_set": "the fault target plus every service that calls it, directly or transitively, in the static Online Boutique call graph (logmit/config.py CALLS)",
+  "excluded": "not anomalous, but overlapping (episode.end, episode.end + 60 s] of an episode whose affected set contains S: dropped from tuning and scoring",
+  "normal": "everything else, including windows of unaffected services during a fault",
+  "timestamps": "window times are kubelet log timestamps; episode times are the injector's host clock (measured node-host difference: 0 s)"
+ }
+}
