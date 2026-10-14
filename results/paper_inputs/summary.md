@@ -589,8 +589,9 @@ scale redis-cart 2, restart shippingservice 1, scale cartservice 1.
   9.57 % against 12.55 %. In the three episodes where both runs failed (4, 12, 17), recovery took
   28.9 / 74.7 / 110.9 s against 45.1 / 137.5 / 124.9 s.
 - **The cost is false actions.** 8.2 unnecessary actions per hour, higher than without the HPA,
-  because scaled-up services add more log streams that can raise false verdicts.
-- **No early warning.** The median lead of 4.81 s comes mostly from outage and CPU-throttle
-  episodes. For pod kill it is 0.12 s.
+  likely because scaled-up services add log streams that can raise false verdicts (not verified).
+- **No early warning.** The median lead of 4.81 s mixes the single CPU-throttle episode with
+  failed probes (lead 9.5 s) with pod kills (median 0.12 s). Outage episodes, outside this table,
+  have a median lead of 1.36 s.
 - **Still one run per condition.** The availability differences are about 1 percentage point and
   have no error bars.
