@@ -32,6 +32,7 @@ $real | ForEach-Object { "  $($_.Path.Substring($Dest.Length + 1)):$($_.LineNumb
 if ($real) { throw "secret scan found matches; review them before committing" }
 
 Push-Location $Dest
+$ErrorActionPreference = 'Continue'   # git writes warnings to stderr; PowerShell 5.1 would treat them as fatal
 git init -q -b main
 git add -A
 git commit -q -m "Code, scripts and measured results for log-based proactive mitigation on Kubernetes" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
