@@ -624,3 +624,20 @@ Command (transformers installed in `D:\pylibs`, BERT in `D:\hf-cache`):
   original fastText/TF-IDF vectors, no synthetic log-instability evaluation, one seed. Two launches
   failed before training (int32 labels; then a GPU out-of-memory error at batch 512) and were
   fixed. NeuralLog was not attempted.
+
+### T5. Public release folder
+
+`D:\logmit-release`, built by `.\release\make_release.ps1`. It is a fresh git repository with one
+commit (`3869905`, author taken from the local git config), with no remote and nothing pushed.
+
+- **Included (53 files, largest 0.06 MB):** `logmit/*.py`, `infra/*.ps1` and `*.yaml`,
+  `requirements.txt`, `results/*.json`, `results/figures/`, `results/paper_inputs/` (with this
+  file), the release `README.md` with reproduction commands, and an MIT `LICENSE` naming the four
+  authors.
+- **Excluded:** raw logs (70–100 MB per run; the README says how to regenerate them), trained
+  models, paper and LaTeX sources, `build_paper.py`, `claude.md`, `AGENTS.md`, kubeconfigs.
+- **Secret scan:** 0 matches for passwords, API keys, tokens, private keys, kubeconfig certificate
+  data or e-mail addresses in the files, and no kubeconfig or API-server paths. The commit metadata
+  carries the git author e-mail.
+- **Deviation:** the first build stopped at `git add` (PowerShell 5.1 treated a git line-ending
+  warning as fatal). The scan had already passed; the commit was finished by hand and the script fixed.
