@@ -1,0 +1,203 @@
+{
+ "run": "loop_proactive",
+ "probes": 16758,
+ "hours": 1.1003021191226112,
+ "availability_pct": 90.47022317699009,
+ "actions": 36,
+ "unnecessary_actions_per_hour": 4.544206462118819,
+ "main": {
+  "episodes": 12,
+  "episodes_with_user_impact": 10,
+  "episodes_not_recovered": 0,
+  "mttr_mean_s": 32.19862337112427,
+  "failed_requests_during_fault_pct": 11.011128630322803,
+  "lead_time_median_s": -0.003952503204345703,
+  "lead_time_iqr_s": [
+   -0.45602166652679443,
+   1.204879879951477
+  ],
+  "availability_pct": 92.42725880551302
+ },
+ "per_fault": {
+  "cpu_throttle": {
+   "episodes": 6,
+   "episodes_with_user_impact": 4,
+   "episodes_not_recovered": 0,
+   "mttr_mean_s": 37.47293949127197,
+   "failed_requests_during_fault_pct": 2.4691998892580287,
+   "lead_time_median_s": 0.9777179956436157,
+   "lead_time_iqr_s": [
+    -0.9885175824165344,
+    3.1941493153572083
+   ]
+  },
+  "outage": {
+   "episodes": 6,
+   "episodes_with_user_impact": 6,
+   "episodes_not_recovered": 0,
+   "mttr_mean_s": 56.07061572869619,
+   "failed_requests_during_fault_pct": 18.522102573428636,
+   "lead_time_median_s": 0.6569889783859253,
+   "lead_time_iqr_s": [
+    -0.41323399543762207,
+    4.180542886257172
+   ]
+  },
+  "pod_kill": {
+   "episodes": 6,
+   "episodes_with_user_impact": 6,
+   "episodes_not_recovered": 0,
+   "mttr_mean_s": 28.68241262435913,
+   "failed_requests_during_fault_pct": 19.553057371387577,
+   "lead_time_median_s": -0.003952503204345703,
+   "lead_time_iqr_s": [
+    -0.3442953824996948,
+    0.0005007386207580566
+   ]
+  }
+ },
+ "per_episode": [
+  {
+   "fault": "outage",
+   "target": "shippingservice",
+   "failed_pct": 3.9408866995073892,
+   "mttr": 39.90465807914734,
+   "lead": -0.5873432159423828,
+   "recovered": true
+  },
+  {
+   "fault": "outage",
+   "target": "redis-cart",
+   "failed_pct": 55.24017467248908,
+   "mttr": 104.81504917144775,
+   "lead": 0.0033910274505615234,
+   "recovered": true
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "productcatalogservice",
+   "failed_pct": 0.0,
+   "mttr": null,
+   "lead": null
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "currencyservice",
+   "failed_pct": 4.166666666666666,
+   "mttr": 23.401814937591553,
+   "lead": -2.601325035095215,
+   "recovered": true
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "frontend",
+   "failed_pct": 3.6544850498338874,
+   "mttr": 29.1911358833313,
+   "lead": 2.406351089477539,
+   "recovered": true
+  },
+  {
+   "fault": "pod_kill",
+   "target": "productcatalogservice",
+   "failed_pct": 2.7181688125894135,
+   "mttr": 20.258075952529907,
+   "lead": -0.00400996208190918,
+   "recovered": true
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "currencyservice",
+   "failed_pct": 4.464285714285714,
+   "mttr": 85.22154307365417,
+   "lead": 5.557543992996216,
+   "recovered": true
+  },
+  {
+   "fault": "outage",
+   "target": "redis-cart",
+   "failed_pct": 21.5,
+   "mttr": 53.3489191532135,
+   "lead": -0.5521090030670166,
+   "recovered": true
+  },
+  {
+   "fault": "pod_kill",
+   "target": "productcatalogservice",
+   "failed_pct": 2.2941970310391366,
+   "mttr": 12.451948881149292,
+   "lead": 1.605851173400879,
+   "recovered": true
+  },
+  {
+   "fault": "outage",
+   "target": "recommendationservice",
+   "failed_pct": 1.9858156028368796,
+   "mttr": 8.34018087387085,
+   "lead": 5.4205920696258545,
+   "recovered": true
+  },
+  {
+   "fault": "pod_kill",
+   "target": "currencyservice",
+   "failed_pct": 40.72681704260652,
+   "mttr": 9.672334909439087,
+   "lead": -0.0038950443267822266,
+   "recovered": true
+  },
+  {
+   "fault": "pod_kill",
+   "target": "cartservice",
+   "failed_pct": 53.75939849624061,
+   "mttr": 86.5457170009613,
+   "lead": 0.0019659996032714844,
+   "recovered": true
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "frontend",
+   "failed_pct": 2.5297619047619047,
+   "mttr": 12.077264070510864,
+   "lead": -0.4509150981903076,
+   "recovered": true
+  },
+  {
+   "fault": "outage",
+   "target": "recommendationservice",
+   "failed_pct": 2.1021021021021022,
+   "mttr": 8.373098134994507,
+   "lead": 5.137194871902466,
+   "recovered": true
+  },
+  {
+   "fault": "outage",
+   "target": "shippingservice",
+   "failed_pct": 26.36363636363636,
+   "mttr": 121.64178895950317,
+   "lead": 1.310586929321289,
+   "recovered": true
+  },
+  {
+   "fault": "cpu_throttle",
+   "target": "productcatalogservice",
+   "failed_pct": 0.0,
+   "mttr": null,
+   "lead": null
+  },
+  {
+   "fault": "pod_kill",
+   "target": "cartservice",
+   "failed_pct": 15.019762845849801,
+   "mttr": 28.00707197189331,
+   "lead": -0.45772385597229004,
+   "recovered": true
+  },
+  {
+   "fault": "pod_kill",
+   "target": "currencyservice",
+   "failed_pct": 2.8000000000000003,
+   "mttr": 15.159327030181885,
+   "lead": -0.5918722152709961,
+   "recovered": true
+  }
+ ]
+}

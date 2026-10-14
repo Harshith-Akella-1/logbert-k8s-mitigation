@@ -1,7 +1,7 @@
 # Paper inputs: what was actually run and measured
 
 Collected 2026-10-14 from files on disk. Every number below comes from a real run and can be traced
-to a JSON file in this folder. Closed-loop experiments have **not** been run; section 5 is empty.
+to a JSON file in this folder. Section 5 (closed loop) was added after the runs on the same day.
 
 | File | Contents |
 |---|---|
@@ -238,16 +238,72 @@ Read this table with three cautions:
 
 ## 5. Closed-loop results
 
-**Not run.** No reactive or proactive run has been recorded, so there is no MTTR, availability,
-failed-request or action data, and no results file. The controller (`logmit/controller.py`) and live
-loop (`logmit/run_loop.py`) have only been exercised in dry-run mode on synthetic logs.
+Added 2026-10-14. Raw files: `loop_reactive.json`, `loop_proactive.json` (copies of `results/`).
 
-When they are run, `logmit/metrics.py` reports pod_kill and cpu_throttle as the main comparison and
-the scale-to-zero outage separately, because the reactive baseline cannot recover from a scale-to-zero
-until the fault is withdrawn.
+**Protocol.** One new schedule (seed 2, 18 episodes, 90–100 s, 120 s gaps), run twice:
 
-Section 4 already bounds what these runs can show: with verdicts arriving at the moment of failure,
-"proactive" mitigation is realistic only for CPU throttling.
+- `loop_reactive` (01:47–02:53): plain Kubernetes, with the HPA from `infra/hpa.yaml` (70 % CPU on
+  frontend, productcatalogservice, currencyservice). The detector ran in observe-only (dry-run) mode
+  to record verdict times.
+- `loop_proactive` (09:25–10:33): the controller acts on verdicts; no HPA.
+- In both runs the injector sets every Deployment back to 1 replica 60 s after each episode.
+
+**Pod kill and CPU throttling (12 episodes):**
+
+| Metric | Reactive | Controller |
+|---|---|---|
+| MTTR, mean over episodes with failed probes (s) | 97.37 (4 episodes) | 32.20 (10 episodes) |
+| MTTR, the 4 episodes where both failed (s) | 97.4 | 41.8 |
+| Availability (%) | 92.07 | 92.43 |
+| Failed probes during faults (%) | 12.55 | 11.01 |
+| Episodes not recovered before fault end | 0 | 0 |
+| Automatic actions, whole run | 0 | 36 |
+| Unnecessary actions per hour | 0 | 4.54 |
+| Median lead over first failed probe (s) | 0.08 (observe-only) | 0.00 |
+| Availability, whole run including outages (%) | 91.14 | 90.47 |
+
+**Outage (6 episodes, reported separately):** MTTR 73.39 s reactive against 56.07 s with the
+controller; failed probes during faults 11.94 % against 18.52 %.
+
+**Per episode** (percentage of probes failed during the fault / MTTR in s / lead in s):
+
+| # | Fault | Target | Reactive | Controller |
+|---|---|---|---|---|
+| 1 | outage | shippingservice | 28.4 / 125.6 / −0.6 | 3.9 / 39.9 / −0.6 |
+| 2 | outage | redis-cart | 9.1 / 89.0 / – | 55.2 / 104.8 / 0.0 |
+| 3 | cpu_throttle | productcatalogservice | 0.0 / – / – | 0.0 / – / – |
+| 4 | cpu_throttle | currencyservice | 2.1 / 45.1 / 38.0 | 4.2 / 23.4 / −2.6 |
+| 5 | cpu_throttle | frontend | 5.8 / 82.0 / 0.2 | 3.7 / 29.2 / 2.4 |
+| 6 | pod_kill | productcatalogservice | 0.0 / – / – | 2.7 / 20.3 / 0.0 |
+| 7 | cpu_throttle | currencyservice | 0.0 / – / – | 4.5 / 85.2 / 5.6 |
+| 8 | outage | redis-cart | 9.0 / 88.9 / 0.0 | 21.5 / 53.3 / −0.6 |
+| 9 | pod_kill | productcatalogservice | 0.0 / – / – | 2.3 / 12.5 / 1.6 |
+| 10 | outage | recommendationservice | 1.1 / 17.1 / 2.9 | 2.0 / 8.3 / 5.4 |
+| 11 | pod_kill | currencyservice | 0.0 / – / – | 40.7 / 9.7 / 0.0 |
+| 12 | pod_kill | cartservice | 71.4 / 137.5 / −1.2 | 53.8 / 86.5 / 0.0 |
+| 13 | cpu_throttle | frontend | 0.0 / – / – | 2.5 / 12.1 / −0.5 |
+| 14 | outage | recommendationservice | 0.4 / 0.1 / 2.7 | 2.1 / 8.4 / 5.1 |
+| 15 | outage | shippingservice | 23.6 / 119.7 / −0.5 | 26.4 / 121.6 / 1.3 |
+| 16 | cpu_throttle | productcatalogservice | 0.0 / – / – | 0.0 / – / – |
+| 17 | pod_kill | cartservice | 71.2 / 124.9 / 0.0 | 15.0 / 28.0 / −0.5 |
+| 18 | pod_kill | currencyservice | 0.0 / – / – | 2.8 / 15.2 / −0.6 |
+
+**Controller actions (36):** restart frontend 11, scale frontend 7, scale redis-cart 6, scale
+recommendationservice 5, restart cartservice 2, scale checkoutservice 2, restart shippingservice 1,
+scale cartservice 1, scale currencyservice 1. Of 2,337 verdict records, 1,880 were "alert:persistent",
+300 "alert:budget" and 121 "skip:cooldown".
+
+**Reading the comparison**
+
+- MTTR means are over different episodes. Only the 4 paired episodes compare like with like; the
+  controller is faster in all 4.
+- 6 episodes failed only with the controller. A likely cause is that the reactive run's HPA scaled
+  the frontend to 4–5 replicas from episode 5 onward and kept them despite the reset (4–5 frontend
+  pods log in every later episode). The controller run had no HPA. The test run, with neither,
+  lost 66–73 % of probes to the currency-service kill that cost the reactive run nothing.
+- The controller restarted a frontend pod 11 times; with one replica, each restart drops requests.
+- No early warning: median lead 0.1 s observe-only and 0.0 s acting. The exception is CPU throttling
+  in observe-only mode (leads 38.0 s and 0.2 s in its two failing episodes).
 
 ## 6. Problems and deviations
 
@@ -261,6 +317,17 @@ Section 4 already bounds what these runs can show: with verdicts arriving at the
 | 10:37 onward | Collector and injector hung silently on the dead cluster | Failure went unnoticed for 2 h | Added 10 s API timeouts; collector aborts after 60 s without a cluster |
 | 12:35–13:00 | Laptop on battery entered Modern Standby, stretching one 90 s episode to 6 min 47 s, then rebooted uncleanly | Second validation run lost at 5 of 18 episodes (`fault_val_aborted2`) | Re-ran on mains power with a display-required power request (`infra/fault_runs.ps1`) |
 | 15:30 | Evaluation failed twice with a CUDA out-of-memory error while the cluster held most of the RAM | None on results | Stopped Minikube, re-ran |
+
+**Incidents on 2026-10-14 (closed loop)**
+
+| Time | What happened | Effect | Action |
+|---|---|---|---|
+| 01:51 | Detector crashed on the first verdict from a non-frontend service (missing entry in the controller's dependency table; my bug) | Reactive run: no verdict times for 01:51:41–01:56:49 (about episode 2); probe measurements unaffected | Fixed (commit `ea18d02`), restarted the observe-only detector |
+| 03:14 | Charger unplugged, laptop entered standby until 06:56 | Proactive run lost after 5 of 18 episodes (`loop_proactive_aborted`) | Re-ran 09:25–10:33 on mains power |
+
+Before the closed-loop runs the controller's dependency naming was changed to read only error
+messages; it had matched the `/cart` request path and named `cartservice` for nearly every fault.
+This was developed and checked on the validation run.
 
 Neither aborted run is used anywhere. The validation and test runs that are used were recorded back to
 back, 13:12–15:28, with every episode at its intended length and no standby events.
@@ -315,3 +382,5 @@ All commands are run from the project folder with `LOGMIT_DATA=D:\logmit-data`.
 | `results/detection.json` | `python -m logmit.evaluate --train normal1 --val fault_val --test fault_test --logbert logbert logbert_novhm logbert_nosvc logbert_2layer` |
 | Training curves | the four training commands again with `--name <model>_rerun` |
 | Everything else in this folder | `python -m logmit.report --train normal1 --val fault_val --test fault_test` (`setup.json` was written by hand from tool output) |
+
+| `loop_reactive.json`, `loop_proactive.json` | `.\infra\closed_loop.ps1` (reactive run), then `.\infra\closed_loop.ps1 -Runs loop_proactive` after the interrupted first attempt; each ends with `python -m logmit.metrics --run <run>` |
