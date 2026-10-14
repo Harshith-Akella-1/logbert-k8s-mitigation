@@ -525,3 +525,72 @@ Deviations:
 - 10 LogBERT epochs instead of 40.
 - The testbed itself still uses strict matching. Its fault runs had 5.1–5.7 % unknown lines, mostly
   genuinely new error messages, so the testbed results are not affected the same way.
+
+### T4. Closed loop with the controller and the HPA together (`loop_proactive_hpa`)
+
+Command: `.\infra\closed_loop.ps1 -Runs loop_proactive_hpa`. Run 03:18–04:24 on mains power, with no
+standby events. Same seed-2 schedule as `loop_reactive` and `loop_proactive`, the same HPA as the
+reactive run, the controller acting, replicas reset to 1 after each episode as before. New in this
+run: the replica count of every Deployment is logged at each episode start (`replicas_at_start` in
+`D:\logmit-data\loop_proactive_hpa\faults.jsonl`).
+
+**Pod kill and CPU throttling (12 episodes), all three runs:**
+
+| Metric | Reactive (HPA) | Controller | Controller + HPA |
+|---|---|---|---|
+| MTTR, mean over episodes with failed probes (s) | 97.37 (4) | 32.20 (10) | 53.61 (4) |
+| Availability (%) | 92.07 | 92.43 | 93.33 |
+| Failed probes during faults (%) | 12.55 | 11.01 | 9.57 |
+| Episodes not recovered before fault end | 0 | 0 | 0 |
+| Automatic actions, whole run | 0 | 36 | 37 |
+| Unnecessary actions per hour | 0 | 4.54 | 8.17 |
+| Median lead over first failed probe (s) | 0.08 (observe-only) | 0.00 | 4.81 |
+| Availability, whole run including outages (%) | 91.14 | 90.47 | 92.09 |
+
+**Outage (6 episodes):** MTTR 73.4 s reactive, 56.1 s controller, 54.0 s controller + HPA; failed
+probes during faults 11.9 %, 18.5 % and 16.9 %.
+
+**Per episode** (percentage of probes failed during the fault / MTTR in s; replicas above 1 at the
+start of the episode in the controller + HPA run):
+
+| # | Fault | Target | Reactive | Controller | Controller + HPA | Replicas > 1 at start (controller + HPA) |
+|---|---|---|---|---|---|---|
+| 1 | outage | shippingservice | 28.4 / 125.6 | 3.9 / 39.9 | 14.3 / 84.3 | frontend 2 |
+| 2 | outage | redis-cart | 9.1 / 89.0 | 55.2 / 104.8 | 49.4 / 111.6 | frontend 2 |
+| 3 | cpu_throttle | productcatalogservice | 0.0 / – | 0.0 / – | 0.0 / – | frontend 3 |
+| 4 | cpu_throttle | currencyservice | 2.1 / 45.1 | 4.2 / 23.4 | 1.9 / 28.9 | frontend 3, productcatalog 2 |
+| 5 | cpu_throttle | frontend | 5.8 / 82.0 | 3.7 / 29.2 | 0.0 / – | currency 4, frontend 4, productcatalog 2 |
+| 6 | pod_kill | productcatalogservice | 0.0 / – | 2.7 / 20.3 | 0.0 / – | currency 5, frontend 4, productcatalog 2 |
+| 7 | cpu_throttle | currencyservice | 0.0 / – | 4.5 / 85.2 | 0.0 / – | currency 5, frontend 4, payment 2, productcatalog 2 |
+| 8 | outage | redis-cart | 9.0 / 88.9 | 21.5 / 53.3 | 31.0 / 85.6 | currency 5, frontend 4, productcatalog 2 |
+| 9 | pod_kill | productcatalogservice | 0.0 / – | 2.3 / 12.5 | 0.0 / – | same |
+| 10 | outage | recommendationservice | 1.1 / 17.1 | 2.0 / 8.3 | 0.4 / 0.5 | same |
+| 11 | pod_kill | currencyservice | 0.0 / – | 40.7 / 9.7 | 0.1 / 0.0 | same |
+| 12 | pod_kill | cartservice | 71.4 / 137.5 | 53.8 / 86.5 | 44.4 / 74.7 | same |
+| 13 | cpu_throttle | frontend | 0.0 / – | 2.5 / 12.1 | 0.0 / – | same |
+| 14 | outage | recommendationservice | 0.4 / 0.1 | 2.1 / 8.4 | 1.1 / 16.3 | currency 4, frontend 4, productcatalog 2 |
+| 15 | outage | shippingservice | 23.6 / 119.7 | 26.4 / 121.6 | 5.2 / 25.9 | same |
+| 16 | cpu_throttle | productcatalogservice | 0.0 / – | 0.0 / – | 0.0 / – | same |
+| 17 | pod_kill | cartservice | 71.2 / 124.9 | 15.0 / 28.0 | 68.4 / 110.9 | currency 5, frontend 4, productcatalog 2 |
+| 18 | pod_kill | currencyservice | 0.0 / – | 2.8 / 15.2 | 0.0 / – | same |
+
+**Controller actions (37):** scale frontend 12, restart frontend 6, scale currencyservice 4, scale
+recommendationservice 4, scale checkoutservice 3, restart cartservice 2, scale paymentservice 2,
+scale redis-cart 2, restart shippingservice 1, scale cartservice 1.
+
+**Reading it**
+
+- **The replica log settles the earlier question.** The reset to 1 replica does not hold while an
+  HPA is present: the frontend runs 2–4 replicas and currencyservice 4–5 from episode 5 onward.
+  Episode 1 already starts with 2 frontend replicas, because the controller scaled the frontend
+  during the 2-minute warm-up before any fault, which is a false action.
+- **With the same replica help, the controller adds a little.** Failed episodes drop to 4 (as in
+  the reactive run). Availability is 93.33 % against 92.07 %, and failed probes during faults
+  9.57 % against 12.55 %. In the three episodes where both runs failed (4, 12, 17), recovery took
+  28.9 / 74.7 / 110.9 s against 45.1 / 137.5 / 124.9 s.
+- **The cost is false actions.** 8.2 unnecessary actions per hour, higher than without the HPA,
+  because scaled-up services add more log streams that can raise false verdicts.
+- **No early warning.** The median lead of 4.81 s comes mostly from outage and CPU-throttle
+  episodes. For pod kill it is 0.12 s.
+- **Still one run per condition.** The availability differences are about 1 percentage point and
+  have no error bars.
