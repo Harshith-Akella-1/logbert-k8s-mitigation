@@ -389,3 +389,139 @@ All commands are run from the project folder with `LOGMIT_DATA=D:\logmit-data`.
 | Everything else in this folder | `python -m logmit.report --train normal1 --val fault_val --test fault_test` (`setup.json` was written by hand from tool output) |
 
 | `loop_reactive.json`, `loop_proactive.json` | `.\infra\closed_loop.ps1` (reactive run), then `.\infra\closed_loop.ps1 -Runs loop_proactive` after the interrupted first attempt; each ends with `python -m logmit.metrics --run <run>` |
+
+## 8. Unattended session, 2026-10-15
+
+New result files: `results/seeds.json`, `results/hdfs.json`, `results/bgl.json`,
+`results/figures/fig6_threshold.{pdf,png}`. The paper and `.tex` files were not edited.
+
+### T0. Fig. 6 redrawn
+
+`python results/figures/make_fig6.py` reads the 11 test-run sweep points and the validation-chosen
+tau = 1/32 from `results/detection.json` and writes a vector PDF and a 300-dpi PNG. No data changed.
+
+### T2. Seed repeats on the testbed (5 seeds)
+
+Same settings as the paper (LogBERT 4 layers / 256 hidden / 40 epochs; DeepLog as in section 3).
+For each seed: train on `normal1`, choose (g, tau) on `fault_val` with the usual procedure, report
+`fault_test` once. Command: `python -m logmit.seeds --train normal1 --val fault_val --test fault_test`.
+
+| Model | Seed | g | tau | Precision | Recall | F1 | F1 cpu_throttle | F1 outage | F1 pod_kill |
+|---|---|---|---|---|---|---|---|---|---|
+| LogBERT | 0 | 3 | 0.0312 | 0.970 | 0.861 | 0.912 | 0.612 | 0.934 | 0.930 |
+| LogBERT | 1 | 3 | 0.0312 | 0.981 | 0.852 | 0.912 | 0.594 | 0.948 | 0.938 |
+| LogBERT | 2 | 3 | 0.0312 | 0.971 | 0.858 | 0.911 | 0.589 | 0.936 | 0.932 |
+| LogBERT | 3 | 3 | 0.0312 | 0.981 | 0.866 | 0.920 | 0.653 | 0.950 | 0.939 |
+| LogBERT | 4 | 3 | 0.0312 | 0.978 | 0.854 | 0.912 | 0.586 | 0.946 | 0.937 |
+| DeepLog | 0 | 2 | 0.0909 | 0.943 | 0.855 | 0.897 | 0.577 | 0.885 | 0.905 |
+| DeepLog | 1 | 2 | 0.0909 | 0.959 | 0.861 | 0.907 | 0.631 | 0.907 | 0.918 |
+| DeepLog | 2 | 6 | 0.0000 | 0.991 | 0.820 | 0.897 | 0.436 | 0.964 | 0.943 |
+| DeepLog | 3 | 3 | 0.0455 | 0.960 | 0.841 | 0.896 | 0.519 | 0.916 | 0.918 |
+| DeepLog | 4 | 2 | 0.0909 | 0.959 | 0.859 | 0.906 | 0.629 | 0.904 | 0.917 |
+
+Mean ± sample standard deviation over the 5 seeds:
+
+| Model | Precision | Recall | F1 | F1 cpu_throttle | F1 outage | F1 pod_kill |
+|---|---|---|---|---|---|---|
+| LogBERT | 0.976 ± 0.005 | 0.858 ± 0.006 | 0.913 ± 0.004 | 0.607 ± 0.028 | 0.943 ± 0.008 | 0.935 ± 0.004 |
+| DeepLog | 0.962 ± 0.018 | 0.847 ± 0.017 | 0.901 ± 0.005 | 0.558 ± 0.082 | 0.915 ± 0.029 | 0.920 ± 0.014 |
+
+- Seed 0 reproduces the original model exactly: the same loss curve, and test F1 0.912 with g = 3,
+  tau = 1/32. GPU training here is deterministic for a fixed seed.
+- LogBERT is ahead of DeepLog on F1 in every seed, by 0.005–0.024; the mean gap is 0.012.
+- DeepLog's chosen (g, tau) changes across seeds; LogBERT's never does.
+- Deviation: training ran while the GPU was shared with the HDFS job, so the training times in
+  `seeds.json` (668–1003 s for LogBERT) are not clean timings.
+
+### T1. Loghub HDFS_v1
+
+Command: `python -m logmit.bench --dataset hdfs --epochs 10` (module `logmit/bench.py`).
+
+| Item | Value |
+|---|---|
+| Sessions (block_id) / anomalous | 575,061 / 16,838 |
+| Templates | 29 (Loghub's preprocessed event traces) |
+| Order | position of the block's first line in `HDFS.log` |
+| Train (first 60 %) | 345,036 sessions; 333,878 normal used, 11,158 anomalous dropped |
+| Validation (next 20 %) | 115,012 sessions, 4,001 anomalous |
+| Test (last 20 %) | 115,013 sessions, 1,679 anomalous |
+
+| Method | Precision | Recall | F1 | Validation F1 | g | tau | Train time (s) |
+|---|---|---|---|---|---|---|---|
+| Keyword rule | 1.000 | 0.489 | 0.657 | 0.746 | – | 0.0000 | 0 |
+| Isolation Forest | 0.022 | 0.917 | 0.043 | 0.330 | – | 0.3527 | 1.9 |
+| DeepLog | 0.685 | 0.645 | 0.664 | 0.708 | 4 | 0.0270 | 1,462.6 |
+| LogBERT | 0.864 | 0.721 | 0.786 | 0.933 | 4 | 0.0312 | 3,496.6 |
+
+How the methods see a session:
+
+- **LogBERT:** each session is cut into windows of 32 keys (the last one padded, padding excluded
+  from attention, masking and scoring); the session score is the highest window score. Same
+  architecture as the testbed (4 layers, 4 heads, hidden 256; 3,183,648 parameters, no service
+  embedding), 10 epochs on 338,477 training windows.
+- **DeepLog:** each key is predicted from the previous 10, padded at the session start; session
+  score = share of the session's keys outside the top-g. 5 epochs.
+- **Isolation Forest:** template-count vector per session.
+- **Keyword rule:** share of a session's events whose template contains a keyword.
+
+Findings:
+
+- **The chronological split has strong drift.** Normal test-period sessions are shorter (median
+  13 events against 19 in training) and contain far fewer delete events (E21/E23: 1.19 per session
+  against about 2.8), because the log ends before many of those blocks are deleted. Count-based
+  Isolation Forest flags most of them (test F1 0.043). Every method scores lower on test than on
+  validation; LogBERT drops the most in absolute terms (0.933 → 0.786) but stays best.
+- **Not comparable with published numbers.** HDFS results in the literature (F1 around 0.9 or
+  higher) mostly use random splits.
+
+Deviations:
+
+- The Loghub-provided templates were used instead of re-running Drain.
+- The keyword rule reads template text, not raw lines.
+- 10 LogBERT epochs instead of 40, for time.
+- The GPU was shared with T2, so the training times are inflated.
+- The first launch crashed on a string-formatting bug before any method ran; it was restarted.
+
+### T3. Loghub BGL
+
+Command: `python -m logmit.bench --dataset bgl --epochs 10`.
+
+| Item | Value |
+|---|---|
+| Lines used | 4,747,936 of 4,747,963 (the last 27 do not fill a window) |
+| Sequences | windows of 32 consecutive lines, non-overlapping (stride 32), in file order: 148,373 |
+| Anomalous windows | 13,128 (a window is anomalous if any line has a non-'-' label) |
+| Parser | drain3, similarity 0.5, depth 4, testbed masks, fitted on the first 60 % of lines only: 324 templates |
+| Unknown keys after the cut | 28.5 % of lines match no training-period template |
+| Train | 89,023 windows; 80,813 normal used, 8,210 anomalous dropped |
+| Validation | 29,675 windows, 2,923 anomalous |
+| Test | 29,675 windows, 1,995 anomalous |
+
+| Method | Precision | Recall | F1 | Validation F1 | g | tau | Train time (s) |
+|---|---|---|---|---|---|---|---|
+| Keyword rule | 0.170 | 0.599 | 0.265 | 0.342 | – | 0.6875 | 0 |
+| Isolation Forest | 0.041 | 0.177 | 0.067 | 0.105 | – | 0.3055 | 0.4 |
+| DeepLog | 0.122 | 0.827 | 0.213 | 0.403 | 9 | 0.9688 | 141.2 |
+| LogBERT | 0.083 | 0.985 | 0.152 | 0.309 | 9 | 0.0625 | 301.7 |
+
+Findings:
+
+- **All four methods fail under this protocol**, and LogBERT is last. With a chronological split
+  and templates learned only from the training period, 28.5 % of later lines are unknown to every
+  model, so the sequence models flag most windows (LogBERT recall 0.985 at precision 0.083).
+- **The keyword rule is weak too.** BGL normal lines often contain words like "error" (for example
+  "instruction cache parity error corrected" is labelled normal).
+- **Not comparable with published numbers.** Those mostly use random splits, templates from the
+  full log, or time windows.
+
+Deviations:
+
+- The first attempt (02:59) used drain3's `match()`, which accepts only a perfect template match,
+  and left 61.4 % of post-cut lines unknown. It was stopped after the keyword rule and Isolation
+  Forest had been scored (rule F1 0.265, unchanged afterwards; IF F1 0.061) and restarted with
+  Drain's tree search at the training similarity threshold. That decision was taken from the
+  unknown-key rate, not from any detector's test score; the log of the first attempt is
+  `D:\logmit-data\bgl_attempt1_strict_match.out.txt`.
+- 10 LogBERT epochs instead of 40.
+- The testbed itself still uses strict matching. Its fault runs had 5.1–5.7 % unknown lines, mostly
+  genuinely new error messages, so the testbed results are not affected the same way.
