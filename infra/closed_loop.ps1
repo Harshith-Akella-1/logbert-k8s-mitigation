@@ -1,6 +1,8 @@
 # Stage 6: the closed-loop comparison (about 2 h 25 min). Both runs use the same fault schedule.
 #   loop_reactive   Kubernetes only: probes + HPA. The detector runs in dry-run mode to time its verdicts.
 #   loop_proactive  The controller acts on the detector's verdicts. No HPA.
+#   loop_proactive_hpa  The controller acts and the same HPA as the reactive run is in place
+#                       (.\infra\closed_loop.ps1 -Runs loop_proactive_hpa).
 # Keep the laptop plugged in with the lid open.
 #   .\infra\closed_loop.ps1
 param([string[]]$Runs = @('loop_reactive', 'loop_proactive'), [int]$Reps = 2, [int]$Duration = 90, [int]$Gap = 120, [int]$Seed = 2)
@@ -17,7 +19,7 @@ foreach ($run in $Runs) {
     # same starting state for both runs: one replica everywhere, HPA only for the reactive run
     cmd /c "kubectl delete -f infra\hpa.yaml --ignore-not-found 2>&1" | Out-Null
     foreach ($s in $services) { cmd /c "kubectl scale deployment $s --replicas=1 2>&1" | Out-Null }
-    if ($run -eq 'loop_reactive') { cmd /c "kubectl apply -f infra\hpa.yaml 2>&1" | Tee-Object $log -Append }
+    if ($run -in 'loop_reactive', 'loop_proactive_hpa') { cmd /c "kubectl apply -f infra\hpa.yaml 2>&1" | Tee-Object $log -Append }
     cmd /c "kubectl wait --for=condition=Available deployment --all --timeout=300s 2>&1" | Out-Null
     Start-Sleep -Seconds 120
 

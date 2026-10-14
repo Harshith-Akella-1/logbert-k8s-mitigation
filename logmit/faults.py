@@ -83,13 +83,15 @@ def main(a):
     print(f"{len(plan)} episodes, about {len(plan) * (a.duration + a.gap) / 60:.0f} minutes")
     time.sleep(a.gap)
     for i, (fault, target) in enumerate(plan, 1):
+        replicas = {d.metadata.name: d.spec.replicas for d in apps.list_namespaced_deployment(NAMESPACE).items
+                    if d.metadata.name in SERVICES}
         start = time.time()
         print(f"[{i}/{len(plan)}] {fault} -> {target}", flush=True)
         try:
             FAULTS[fault](v1, apps, target, a.duration)
         finally:
             append_jsonl(log, {"fault": fault, "target": target, "affected": affected(target),
-                               "start": start, "end": time.time()})
+                               "start": start, "end": time.time(), "replicas_at_start": replicas})
         if a.reset_replicas:
             # closed-loop runs: undo any scale-ups once the settling period is over,
             # so every episode starts from one replica per service

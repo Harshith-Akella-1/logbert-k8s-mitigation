@@ -26,9 +26,9 @@ STATUS = {2: "ok", 3: "redirect", 4: "clienterror", 5: "servererror"}
 ERROR_WORDS =re.compile(r"error|fail|exception|fatal|panic|timeout|timed out|refused|unavailable", re.I)
 
 
-def make_miner(fit=False):
+def make_miner(fit=False, state=None):
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    state = MODEL_DIR / "drain.bin"
+    state = state or MODEL_DIR / "drain.bin"
     if fit and state.exists():
         state.unlink()
     cfg = TemplateMinerConfig()
