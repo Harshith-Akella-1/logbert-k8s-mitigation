@@ -100,6 +100,9 @@ python -m logmit.seeds --train normal1 --val fault_val --test fault_test --seeds
 # unpack HDFS_v1.zip into $env:LOGMIT_DATA\benchmarks\HDFS_v1 and BGL.zip into ...\benchmarks\BGL
 python -m logmit.bench --dataset hdfs --epochs 10
 python -m logmit.bench --dataset bgl --epochs 10
+# supervised LogRobust-style baseline on HDFS (needs transformers and bert-base-uncased)
+pip install transformers==4.46.3
+python -m logmit.bench_extra --epochs 5
 ```
 
 ## Results at a glance
@@ -110,6 +113,7 @@ python -m logmit.bench --dataset bgl --epochs 10
 | Five-seed repeats | `results/seeds.json` |
 | Closed loop | `results/loop_reactive.json`, `results/loop_proactive.json`, `results/loop_proactive_hpa.json` |
 | Loghub HDFS / BGL | `results/hdfs.json`, `results/bgl.json` |
+| Supervised LogRobust-style baseline on HDFS | `results/hdfs_extra.json` |
 | Everything explained | `results/paper_inputs/summary.md` |
 
 ## Known limitations
