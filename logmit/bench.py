@@ -84,7 +84,10 @@ def load_bgl(lines_per_window=32, limit=None):
         if i < cut:
             keys[i] = miner.add_log_message(text)["cluster_id"] + 2
         else:
-            c = miner.match(text)
+            # drain3's match() demands a perfect template match; this is Drain's normal tree search at the
+            # training similarity threshold, without creating or updating templates
+            tokens = miner.drain.get_content_as_tokens(miner.masker.mask(text))
+            c = miner.drain.tree_search(miner.drain.root_node, tokens, miner.drain.sim_th, True)
             keys[i] = c.cluster_id + 2 if c else UNK
     templates = {c.cluster_id + 2: c.get_template() for c in miner.drain.clusters}
     errs = np.array([bool(ERROR_WORDS.search(raw[i])) for i in range(n)])
@@ -96,7 +99,8 @@ def load_bgl(lines_per_window=32, limit=None):
     meta = {"dataset": "Loghub BGL", "sequence": f"{w} consecutive lines, non-overlapping (stride {w})",
             "order": "line order of BGL.log", "lines_used": n, "lines_in_file_or_limit": len(raw),
             "parser": "drain3 (similarity 0.5, depth 4, same masks as the testbed) fitted on the first 60 % of "
-                      "lines only; later unseen lines map to the unknown key",
+                      "lines only; later lines are assigned by Drain's tree search at similarity 0.5 without "
+                      "learning, and lines matching no template map to the unknown key",
             "label": "a window is anomalous if any of its lines has a non '-' label",
             "keyword_rule_input": "raw message text of each line",
             "unknown_key_share_after_cut": float((keys[cut:] == UNK).mean())}
