@@ -470,7 +470,7 @@ Findings:
   13 events against 19 in training) and contain far fewer delete events (E21/E23: 1.19 per session
   against about 2.8), because the log ends before many of those blocks are deleted. Count-based
   Isolation Forest flags most of them (test F1 0.043). Every method scores lower on test than on
-  validation; LogBERT drops the most in absolute terms (0.933 → 0.786) but stays best.
+  validation (LogBERT 0.933 → 0.786, Isolation Forest 0.330 → 0.043); LogBERT stays best.
 - **Not comparable with published numbers.** HDFS results in the literature (F1 around 0.9 or
   higher) mostly use random splits.
 
