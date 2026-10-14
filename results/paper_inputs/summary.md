@@ -301,7 +301,12 @@ scale cartservice 1, scale currencyservice 1. Of 2,337 verdict records, 1,880 we
   the frontend to 4–5 replicas from episode 5 onward and kept them despite the reset (4–5 frontend
   pods log in every later episode). The controller run had no HPA. The test run, with neither,
   lost 66–73 % of probes to the currency-service kill that cost the reactive run nothing.
-- The controller restarted a frontend pod 11 times; with one replica, each restart drops requests.
+- None of those 6 failures was started by the controller: in every one the first failed probe came
+  before any frontend restart. In 4 (episodes 6, 9, 13, 18) the controller restarted the frontend
+  0.6–1.8 s after the failures began, in reaction to them; each burst ended within 11–19 s. In
+  episode 7 the only restart came 81.6 s after the first failure, and in episode 11 there was none.
+  In the pod-kill episodes, later kills caused no further failures once the controller had scaled
+  the killed service +1. The gap is the baseline's extra frontend replicas, not controller harm.
 - No early warning: median lead 0.1 s observe-only and 0.0 s acting. The exception is CPU throttling
   in observe-only mode (leads 38.0 s and 0.2 s in its two failing episodes).
 
