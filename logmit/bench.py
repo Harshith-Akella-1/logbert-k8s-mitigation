@@ -273,7 +273,7 @@ def main(a):
     print(json.dumps(meta, indent=1), flush=True)
     res = {"meta": meta, "protocol": {
         "split": "chronological 60/20/20 by sequence start", "train": "normal sequences of the first 60 % only",
-        "thresholds": "chosen on the middle 20 % by maximising sequence-level F1 (g from %s for LogBERT and DeepLog)" % G_GRID,
+        "thresholds": f"chosen on the middle 20 % by maximising sequence-level F1 (g from {G_GRID} for LogBERT and DeepLog)",
         "test": "last 20 %, evaluated once"}, "methods": {}}
 
     def save():
