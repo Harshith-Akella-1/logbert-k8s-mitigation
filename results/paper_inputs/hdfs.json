@@ -1,0 +1,124 @@
+{
+ "meta": {
+  "dataset": "Loghub HDFS_v1",
+  "sequence": "block session (block_id)",
+  "order": "first line of the block in HDFS.log",
+  "parser": "Loghub-provided templates (Drain), not re-parsed",
+  "keyword_rule_input": "template text of each event (raw lines are not joined to sessions)",
+  "sequences": 575061,
+  "anomalous": 16838,
+  "templates": 29,
+  "vocab": 32,
+  "split": {
+   "train_all": 345036,
+   "train_normal_used": 333878,
+   "train_anomalous_dropped": 11158,
+   "val": 115012,
+   "val_anomalous": 4001,
+   "test": 115013,
+   "test_anomalous": 1679
+  },
+  "load_seconds": 63.5
+ },
+ "protocol": {
+  "split": "chronological 60/20/20 by sequence start",
+  "train": "normal sequences of the first 60 % only",
+  "thresholds": "chosen on the middle 20 % by maximising sequence-level F1 (g from [1, 2, 3, 4, 6, 9] for LogBERT and DeepLog)",
+  "test": "last 20 %, evaluated once"
+ },
+ "methods": {
+  "Keyword rule": {
+   "precision": 1.0,
+   "recall": 0.4889815366289458,
+   "f1": 0.6567999999999999,
+   "g": null,
+   "tau": 0.0,
+   "val_f1": 0.7457680250783699,
+   "train_seconds": 0.0
+  },
+  "Isolation Forest": {
+   "precision": 0.021885258715022667,
+   "recall": 0.9172126265634306,
+   "f1": 0.042750464980706775,
+   "g": null,
+   "tau": 0.35267780545085153,
+   "val_f1": 0.33009453781512604,
+   "train_seconds": 1.9
+  },
+  "DeepLog": {
+   "precision": 0.6845764854614412,
+   "recall": 0.6450268016676594,
+   "f1": 0.6642134314627415,
+   "g": 4,
+   "tau": 0.02702702702702703,
+   "val_f1": 0.708027050867392,
+   "train_seconds": 1462.6,
+   "epochs": 5
+  },
+  "LogBERT": {
+   "precision": 0.8637660485021398,
+   "recall": 0.7212626563430613,
+   "f1": 0.7861084063615709,
+   "g": 4,
+   "tau": 0.03125,
+   "val_f1": 0.9328770729139247,
+   "train_seconds": 3496.6,
+   "epochs": 10,
+   "train_windows": 338477,
+   "params": 3183648,
+   "history": [
+    {
+     "epoch": 1,
+     "train_loss": 0.21526881580776727,
+     "seconds": 346.8
+    },
+    {
+     "epoch": 2,
+     "train_loss": 0.08628577956660895,
+     "seconds": 351.5
+    },
+    {
+     "epoch": 3,
+     "train_loss": 0.08096233984273848,
+     "seconds": 351.7
+    },
+    {
+     "epoch": 4,
+     "train_loss": 0.07721389303559709,
+     "seconds": 348.7
+    },
+    {
+     "epoch": 5,
+     "train_loss": 0.07444803745331678,
+     "seconds": 351.9
+    },
+    {
+     "epoch": 6,
+     "train_loss": 0.06955422324044679,
+     "seconds": 352.0
+    },
+    {
+     "epoch": 7,
+     "train_loss": 0.06963125465244888,
+     "seconds": 348.3
+    },
+    {
+     "epoch": 8,
+     "train_loss": 0.06420552111368061,
+     "seconds": 352.0
+    },
+    {
+     "epoch": 9,
+     "train_loss": 0.06379787745806005,
+     "seconds": 351.5
+    },
+    {
+     "epoch": 10,
+     "train_loss": 0.0629298840005314,
+     "seconds": 342.0
+    }
+   ]
+  }
+ },
+ "total_seconds": 5175.9
+}

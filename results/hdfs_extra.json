@@ -1,0 +1,30 @@
+{
+ "dataset": "Loghub HDFS_v1",
+ "method": "LogRobust-style (attention Bi-LSTM over BERT template vectors)",
+ "supervised": true,
+ "settings": {
+  "template_encoder": "bert-base-uncased, mean of last-layer token states, frozen",
+  "lstm": "2-layer bidirectional, hidden 128, attention pooling",
+  "max_len": 128,
+  "sessions_truncated": 44,
+  "optimizer": "Adam, lr 1e-3, batch 128, class-weighted cross-entropy",
+  "seed": 0
+ },
+ "split": {
+  "train": 345036,
+  "train_anomalous_used": 11158,
+  "val": 115012,
+  "test": 115013
+ },
+ "protocol": "train on all labelled sessions of the first 60 %; threshold on the anomaly probability chosen on the middle 20 %; last 20 % evaluated once",
+ "result": {
+  "precision": 0.9692931633835458,
+  "recall": 0.9964264443120905,
+  "f1": 0.9826725403817914,
+  "tau": 0.4620223739741403,
+  "val_f1": 0.9966363523109506,
+  "train_seconds": 490.0,
+  "epochs": 5
+ },
+ "total_seconds": 544.3
+}

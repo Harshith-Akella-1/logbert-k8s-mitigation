@@ -595,3 +595,32 @@ scale redis-cart 2, restart shippingservice 1, scale cartservice 1.
   have a median lead of 1.36 s.
 - **Still one run per condition.** The availability differences are about 1 percentage point and
   have no error bars.
+
+### T6. Newer baseline on HDFS: LogRobust-style, supervised
+
+Command (transformers installed in `D:\pylibs`, BERT in `D:\hf-cache`):
+`$env:PYTHONPATH = "D:\pylibs"; python -m logmit.bench_extra --epochs 5`. Output `results/hdfs_extra.json`.
+
+| Item | Value |
+|---|---|
+| Model | LogRobust-style (Zhang et al., 2019): attention-pooled 2-layer Bi-LSTM (hidden 128) over semantic template vectors |
+| Template vectors | bert-base-uncased, mean of last-layer token states, frozen (`[*]` placeholders removed) |
+| Training | **supervised**: all 345,036 sessions of the first 60 %, including the 11,158 anomalous ones; Adam, lr 1e-3, batch 128, class-weighted cross-entropy, 5 epochs, seed 0; 490 s on the GPU |
+| Sessions | truncated to 128 events (44 of 575,061 sessions are longer) |
+| Threshold | on the anomaly probability, chosen on the validation 20 % (0.462) |
+
+| Method | Precision | Recall | F1 | Validation F1 |
+|---|---|---|---|---|
+| LogRobust-style (supervised) | 0.969 | 0.996 | 0.983 | 0.997 |
+| LogBERT (unsupervised, T1, for reference) | 0.864 | 0.721 | 0.786 | 0.933 |
+
+- **Not a like-for-like comparison.** This baseline learns from labelled anomalies of the training
+  period; LogBERT, DeepLog, Isolation Forest and the rule never see an anomaly label. That is the
+  usual reason supervised detectors win on HDFS, where the anomaly types repeat over time.
+- **It also survives the drift that hurt the unsupervised models.** Its test F1 stays near its
+  validation F1, because the truncated test-period normal sessions also exist, labelled normal, in
+  its training data.
+- **Deviations.** "LogRobust-style", not a faithful reproduction: BERT mean vectors instead of the
+  original fastText/TF-IDF vectors, no synthetic log-instability evaluation, one seed. Two launches
+  failed before training (int32 labels; then a GPU out-of-memory error at batch 512) and were
+  fixed. NeuralLog was not attempted.

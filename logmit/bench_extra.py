@@ -65,7 +65,7 @@ def pad(seqs, ids):
 
 
 @torch.no_grad()
-def probs(model, X, bs=4096):
+def probs(model, X, bs=512):
     model.eval()
     return torch.cat([torch.softmax(model(X[i].to(DEVICE)), -1)[:, 1].cpu() for i in lbm.batches(len(X), bs)]).numpy()
 
@@ -76,7 +76,7 @@ def main(a):
     tr, va, te = split(order)
     table = template_vectors(templates)
     Xtr, Xv, Xt = pad(seqs, tr), pad(seqs, va), pad(seqs, te)
-    ytr = torch.from_numpy(y[tr])
+    ytr = torch.from_numpy(y[tr]).long()
     torch.manual_seed(0)
     model = LogRobust(table).to(DEVICE)
     opt = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=1e-3)
@@ -84,7 +84,7 @@ def main(a):
     t = time.time()
     for epoch in range(a.epochs):
         model.train(); losses = []
-        for idx in lbm.batches(len(Xtr), 512, shuffle=True):
+        for idx in lbm.batches(len(Xtr), 128, shuffle=True):
             loss = F.cross_entropy(model(Xtr[idx].to(DEVICE)), ytr[idx].to(DEVICE), weight=weight)
             opt.zero_grad(); loss.backward(); opt.step(); losses.append(loss.item())
         print(f"  logrobust epoch {epoch + 1}/{a.epochs} loss {np.mean(losses):.4f}", flush=True)
@@ -99,7 +99,7 @@ def main(a):
            "settings": {"template_encoder": "bert-base-uncased, mean of last-layer token states, frozen",
                         "lstm": "2-layer bidirectional, hidden 128, attention pooling", "max_len": MAX_LEN,
                         "sessions_truncated": int(sum(len(seqs[i]) > MAX_LEN for i in range(len(seqs)))),
-                        "optimizer": "Adam, lr 1e-3, batch 512, class-weighted cross-entropy", "seed": 0},
+                        "optimizer": "Adam, lr 1e-3, batch 128, class-weighted cross-entropy", "seed": 0},
            "split": {"train": len(tr), "train_anomalous_used": int(y[tr].sum()), "val": len(va), "test": len(te)},
            "protocol": "train on all labelled sessions of the first 60 %; threshold on the anomaly probability "
                        "chosen on the middle 20 %; last 20 % evaluated once",

@@ -1,0 +1,128 @@
+{
+ "meta": {
+  "dataset": "Loghub BGL",
+  "sequence": "32 consecutive lines, non-overlapping (stride 32)",
+  "order": "line order of BGL.log",
+  "lines_used": 4747936,
+  "lines_in_file_or_limit": 4747963,
+  "parser": "drain3 (similarity 0.5, depth 4, same masks as the testbed) fitted on the first 60 % of lines only; later lines are assigned by Drain's tree search at similarity 0.5 without learning, and lines matching no template map to the unknown key",
+  "label": "a window is anomalous if any of its lines has a non '-' label",
+  "keyword_rule_input": "raw message text of each line",
+  "unknown_key_share_after_cut": 0.28516217354675655,
+  "sequences": 148373,
+  "anomalous": 13128,
+  "templates": 324,
+  "vocab": 327,
+  "split": {
+   "train_all": 89023,
+   "train_normal_used": 80813,
+   "train_anomalous_dropped": 8210,
+   "val": 29675,
+   "val_anomalous": 2923,
+   "test": 29675,
+   "test_anomalous": 1995
+  },
+  "load_seconds": 134.6
+ },
+ "protocol": {
+  "split": "chronological 60/20/20 by sequence start",
+  "train": "normal sequences of the first 60 % only",
+  "thresholds": "chosen on the middle 20 % by maximising sequence-level F1 (g from [1, 2, 3, 4, 6, 9] for LogBERT and DeepLog)",
+  "test": "last 20 %, evaluated once"
+ },
+ "methods": {
+  "Keyword rule": {
+   "precision": 0.16979255470304064,
+   "recall": 0.5989974937343359,
+   "f1": 0.26458540905568473,
+   "g": null,
+   "tau": 0.6875,
+   "val_f1": 0.34231324891646125,
+   "train_seconds": 0.0
+  },
+  "Isolation Forest": {
+   "precision": 0.041402768003753226,
+   "recall": 0.17694235588972432,
+   "f1": 0.0671038874631689,
+   "g": null,
+   "tau": 0.3054670542596167,
+   "val_f1": 0.10477150894326204,
+   "train_seconds": 0.4
+  },
+  "DeepLog": {
+   "precision": 0.12219340496480177,
+   "recall": 0.8265664160401003,
+   "f1": 0.212911555842479,
+   "g": 9,
+   "tau": 0.96875,
+   "val_f1": 0.40336997842391864,
+   "train_seconds": 141.2,
+   "epochs": 5
+  },
+  "LogBERT": {
+   "precision": 0.08250755794423917,
+   "recall": 0.9849624060150376,
+   "f1": 0.15226066405795977,
+   "g": 9,
+   "tau": 0.0625,
+   "val_f1": 0.30915863277826466,
+   "train_seconds": 301.7,
+   "epochs": 10,
+   "train_windows": 80813,
+   "params": 3334983,
+   "history": [
+    {
+     "epoch": 1,
+     "train_loss": 0.6794608521121966,
+     "seconds": 30.4
+    },
+    {
+     "epoch": 2,
+     "train_loss": 0.2188183884313212,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 3,
+     "train_loss": 0.11614872121452531,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 4,
+     "train_loss": 0.10191509447095892,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 5,
+     "train_loss": 0.09431506266605251,
+     "seconds": 30.2
+    },
+    {
+     "epoch": 6,
+     "train_loss": 0.08825308245995754,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 7,
+     "train_loss": 0.08349083066929745,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 8,
+     "train_loss": 0.08126937536687791,
+     "seconds": 30.2
+    },
+    {
+     "epoch": 9,
+     "train_loss": 0.0789979537182688,
+     "seconds": 30.1
+    },
+    {
+     "epoch": 10,
+     "train_loss": 0.07757398515609623,
+     "seconds": 30.2
+    }
+   ]
+  }
+ },
+ "total_seconds": 623.4
+}
