@@ -2,3 +2,9 @@ data/
 build/
 __pycache__/
 *.pt
+
+# older paper drafts; the submitted version is in 'Final paper/'
+docs/*.pdf
+paper/
+paper_latex_source.zip
+build_paper.py
